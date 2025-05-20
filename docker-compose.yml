@@ -1,7 +1,23 @@
 version: '3.8'
 services:
+  # Service client
+  client-service:
+    build:
+      context: ./client-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://clientuser:clientpassword@postgres-client:5432/client_service?schema=public
+    depends_on:
+      - postgres-client
+    volumes:
+      - ./client-service:/app
+      - /app/node_modules
+
   # Base de données pour le service client
-  postgres-client-service:
+  postgres-client:
     image: postgres:13.5
     restart: always
     environment:
@@ -9,12 +25,30 @@ services:
       - POSTGRES_PASSWORD=clientpassword
       - POSTGRES_DB=client_service
     volumes:
-      - postgres-client:/var/lib/postgresql/data
+      - postgres-client-data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '5434:5432'
+
+  # Service de commandes
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3001:3000'
+    environment:
+      - DATABASE_URL=postgresql://orderuser:orderpassword@postgres-order:5432/order_service?schema=public
+      - CLIENT_SERVICE_URL=http://client-service:3000
+    depends_on:
+      - postgres-order
+      - client-service
+    volumes:
+      - ./order-service:/app
+      - /app/node_modules
 
   # Base de données pour le service de commandes
-  postgres-order-service:
+  postgres-order:
     image: postgres:13.5
     restart: always
     environment:
@@ -22,10 +56,10 @@ services:
       - POSTGRES_PASSWORD=orderpassword
       - POSTGRES_DB=order_service
     volumes:
-      - postgres-order:/var/lib/postgresql/data
+      - postgres-order-data:/var/lib/postgresql/data
     ports:
-      - '5433:5432'
+      - '5435:5432'
 
 volumes:
-  postgres-client:
-  postgres-order: 
+  postgres-client-data:
+  postgres-order-data: 
