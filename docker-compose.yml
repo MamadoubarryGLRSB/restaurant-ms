@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  # Base de données pour le service client
+  postgres-client-service:
+    image: postgres:13.5
+    restart: always
+    environment:
+      - POSTGRES_USER=clientuser
+      - POSTGRES_PASSWORD=clientpassword
+      - POSTGRES_DB=client_service
+    volumes:
+      - postgres-client:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  # Base de données pour le service de commandes
+  postgres-order-service:
+    image: postgres:13.5
+    restart: always
+    environment:
+      - POSTGRES_USER=orderuser
+      - POSTGRES_PASSWORD=orderpassword
+      - POSTGRES_DB=order_service
+    volumes:
+      - postgres-order:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+
+volumes:
+  postgres-client:
+  postgres-order: 
